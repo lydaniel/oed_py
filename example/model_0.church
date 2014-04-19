@@ -1,0 +1,23 @@
+;-- library
+(define samples 1000)
+(define mh_lag 20)
+
+;-- inputs
+(define input_list (regexp-split argstring ","))
+(define i_sym      (first input_list))
+(define i_bool     (number_to_boolean (string_to_number (second input_list))))
+
+;-- core
+(define (test sym bool)
+    (mh-query
+        samples mh_lag
+        (define output (multinomial '(0.1 0.3 0.5 0.7 0.9) '(0.15 0.20 0.25 0.15 0.25)))
+        (define o_sym (multinomial '(alpha beta gamma delta) '(0.30 0.25 0.20 0.25)))
+
+        output
+
+        (and (eq? bool (flip output))
+             (if (eq? sym o_sym) (flip output) (flip 0.5)))))
+
+(test i_sym i_bool)
+

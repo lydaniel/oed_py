@@ -1,0 +1,22 @@
+This is a simple example of optimal experiment design (OED) for church programs. 
+The example computes the expected KL-divergence between the posterior and prior 
+model belief distributions given an input. 
+
+There are three models, which generate the distribution for outputs from the
+enumerated list {0.1, 0.3, 0.5, 0.7, 0.9}, given two inputs, a symbolic input
+from {alpha, beta, gamma, delta} and a binary value {0,1}. These models only
+differ in two ways:
+  - model definition: The multinomial distributions within each church program
+                      is unique. It is important that the query value for all 
+                      the models are identical, but the model definitions and
+                      conditions may vary between models.
+  - query type : For illustrative purposes, each model uses a different query 
+                 type. model_0 uses mh-query with 1000 samples and a lag of 20,
+                 model_1 uses enumeration-query, and model_2 uses 
+                 rejection-query with 1000 samples. It is important to define
+                 the query type in the OED example as it requires different
+                 parsers.
+
+To execute the program, run:
+> python test.py
+
