@@ -1,12 +1,14 @@
 Dependencies
 ============
 - Python v2.7.5
-- webchurch (https://github.com/probmods/webchurch commit=1b767cf53111f56c86946dda02733fdc283bc27b)
+- webchurch (https://github.com/probmods/webchurch 
+             commit=1b767cf53111f56c86946dda02733fdc283bc27b)
 
 Directory organization
 ============
 \
-\oed                - python implementation of optimal experiment design for church
+\oed                - python implementation of optimal experiment design 
+                      for church
 \example            - example of OED with three church models
 
 
