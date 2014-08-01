@@ -3,10 +3,7 @@
 import subprocess
 import os
 
-# Enumerated types for string parsing
-class Type:
-    _string = 0
-    _float = 1
+import pmf
 
 # Splits nested, delimited strings into tokenized lists
 def tokenize(string, ld='(', rd=')'):
@@ -28,8 +25,19 @@ def parse(tokens, ld='(', rd=')'):
 def parse_church_list(string, ld='(', rd=')') :
     return parse(tokenize(string, ld, rd), ld, rd)
 
+# To a church list
+def to_church_list(lst, ld='(', rd=')'):
+    string = ld
+    for (i, lst_el) in enumerate(lst) :
+        if (isinstance(lst_el, list)) :
+            string += to_church_list(lst_el, ld, rd) + ' '
+        else :
+            string += lst_el + ' '
+
+    return string[:-1] + rd
+
 # Executes a church program and overwrites output with the church-produced PMF
-def exec_model(filename, inputs, output, query=None, church_exec="church", var_type=Type._string) :
+def exec_model(filename, inputs, output, query=None, church_exec="church") :
     if (query == None) :
         return None
     else :
@@ -41,16 +49,21 @@ def exec_model(filename, inputs, output, query=None, church_exec="church", var_t
 
         if ((query == "mh-query") or (query == "rejection-query")):
             model_output_list = parse_church_list(model_output_raw)
+
+            #if (isinstance(model_output_list[0], list)) :
+            #    for (i, ml) in enumerate(model_output_list) :
+            #       model_output_list[i] = " ".join(ml)
+
             for ml in model_output_list :
+                found = False
                 for mo in output :
-                    if (var_type == Type._string) :
-                        if (ml == mo.x) :
-                            mo.p += 1
-                            break
-                    elif (var_type == Type._float) :
-                        if (float(ml) == float(mo.x)) :
-                            mo.p += 1
-                            break
+                    if (ml == mo.x) :
+                        mo.p += 1
+                        found = True
+                        break
+                            
+                if (found == False) :
+                    output.append(pmf.P(ml, 1))
 
         elif (query == "enumeration-query") :
             model_output_list_base  = parse_church_list(model_output_raw)
@@ -60,21 +73,35 @@ def exec_model(filename, inputs, output, query=None, church_exec="church", var_t
             model_output_list_x = model_output_list_x_raw
             for (i, mlx) in enumerate(model_output_list_x_raw) :
                 if (isinstance(mlx, list)) :
-                    model_output_list_x[i] = ''
-                    for mli in mlx :
-                        model_output_list_x[i] += mli + ' '
-                    model_output_list_x[i] = model_output_list_x[i][:-1]
+                    model_output_list_x[i] = to_church_string(mlx)
 
             for (i, ml) in enumerate(model_output_list_x) :
-                for mo in output :
-                    if (var_type == Type._string) :
-                        if (ml == mo.x) :
-                            mo.p = float(model_output_list_pmf[i])
-                            break
-                    elif (var_type == Type._float) :
-                        if (float(ml) == float(mo.x)) :
-                            mo.p = float(model_output_list_pmf[i])
-                            break
+                output.append(pmf.P(model_output_list_x[i], model_output_list_pmf[i]))
 
         output.normalize()
+        output.pmf.sort(key=lambda p: p.x)
+
+def homogenize_outputs(outputs) :
+    all_output_x = []
+    for op in outputs :
+        for opp in op.pmf :
+            if opp.x not in all_output_x :
+                all_output_x.append(opp.x)
+
+    for op in outputs :
+        op_dirty = False
+        for aox in all_output_x :
+            no_aox = True
+            for opp in op.pmf :
+                if (opp.x == aox) :
+                    no_aox = False
+                    break
+
+            if (no_aox) :
+                op.append(pmf.P(aox, 0))
+                op_dirty = True
+
+        if (op_dirty) :
+            op.pmf.sort(key=lambda p: p.x)
+
 

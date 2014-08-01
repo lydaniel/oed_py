@@ -30,6 +30,10 @@ class PMF :
     def __len__(self) :
         return len(self.pmf)
 
+    def append(self, p) :
+        self.size += 1
+        self.pmf.append(p)
+
     def normalize(self) :
         sum_p = 0
         for i in range(self.size) :
@@ -39,7 +43,8 @@ class PMF :
                 self.pmf[i].p = float(self.pmf[i].p)/sum_p
 
     def clear (self) :
-        for i in range(self.size) :
-            self.pmf[i].p = 0
+        self.__init__()
+        #for i in range(self.size) :
+        #    self.pmf[i].p = 0
 
 

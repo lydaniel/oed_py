@@ -19,22 +19,8 @@ models[1] = pmf.P("model_1.church", 1.0)
 models[2] = pmf.P("model_2.church", 1.0)
 models.normalize()
 
-# define space of possible outputs
-# -- output_pmf is a PMF to store the resulting distributions from the church programs
-# -- the first arguments are the possible output values
-# -- the second arguments will be overwritten and do not matter
-output_pmf = pmf.PMF(5)
-output_pmf[ 0] = pmf.P(0.100, 1.0)
-output_pmf[ 1] = pmf.P(0.300, 1.0)
-output_pmf[ 2] = pmf.P(0.500, 1.0)
-output_pmf[ 3] = pmf.P(0.700, 1.0)
-output_pmf[ 4] = pmf.P(0.900, 1.0)
-output_pmf.normalize() 
-
-# generate an array of output_pmfs for each church program
-outputs = [0]*len(models)
-for m in range(len(models)) :
-    outputs[m] = copy.deepcopy(output_pmf)
+# generate an empty array of PMFs to contain the outputs of the church programs
+outputs = [pmf.PMF() for i in range(len(models))]
 
 # define the query time for each church program
 query = [0]*len(models)
@@ -60,9 +46,12 @@ for i_sym in i_syms :
         # for each model, execute the church program
         for m in range(len(models)) :
             church.exec_model(models[m].x, inputs, outputs[m], query[m], \
-                              church_exec_path, church.Type._float)
+                              church_exec_path)
 
-        # using the computed output distribution, compute and print the expected KL-divergence for each input
+        # ensure that output array contains the sorted, union set of all observed outputs
+        church.homogenize_outputs(outputs)
+
+        # using the observed output distribution, compute and print the expected KL-divergence for each input
         expected_kl = oed.get_expected_kl(models, outputs)
         print inputs, " = ", expected_kl
 
