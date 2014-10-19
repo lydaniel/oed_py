@@ -51,16 +51,25 @@ def get_output_pmf(models, outputs) :
     return p_model_g_input_output_sum
 
 # Computes the expected KL-divergence over all the outputs
-def get_expected_kl(models, output, output_kl=None, output_pmf=None) :
-    if (output_kl == None)  :
-        output_kl = get_output_kl(models, output)
-
-    if (output_pmf == None) :
-        output_pmf = get_output_pmf(models, output)
-
+def get_expected_kl(models, outputs, output_kl=None, output_pmf=None) :
     expected_kl = 0
-    for i in range(len(output_kl)) :
-        expected_kl += output_kl[i]*output_pmf[i]
+
+    if (output_kl or output_pmf) :
+        if not output_kl :
+            output_kl = get_output_kl(models, outputs)
+
+        if not output_pmf :
+            output_pmf = get_output_pmf(models, outputs)
+
+        for i in range(len(output_kl)) :
+            expected_kl += output_kl[i]*output_pmf[i]
+    else :
+        for i in range(len(outputs[0])) :
+            p_output = 0
+            for m in range(len(models)) :
+                p_output += outputs[m][i].p*models[m].p
+            for m in range(len(models)) :
+                expected_kl += outputs[m][i].p*models[m].p*math.log(outputs[m][i].p/p_output)
 
     return expected_kl
         

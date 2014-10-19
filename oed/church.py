@@ -65,6 +65,9 @@ def exec_model(filename, inputs, output, query=None, church_exec="church") :
                 if (found == False) :
                     output.append(pmf.P(ml, 1))
 
+            output.normalize()
+            output.pmf.sort(key=lambda p: p.x)
+
         elif (query == "enumeration-query") :
             model_output_list_base  = parse_church_list(model_output_raw)
             model_output_list_x_raw = model_output_list_base[0]
@@ -78,8 +81,14 @@ def exec_model(filename, inputs, output, query=None, church_exec="church") :
             for (i, ml) in enumerate(model_output_list_x) :
                 output.append(pmf.P(model_output_list_x[i], model_output_list_pmf[i]))
 
-        output.normalize()
-        output.pmf.sort(key=lambda p: p.x)
+            output.normalize()
+            output.pmf.sort(key=lambda p: p.x)
+
+        elif (query == "raw") :
+            model_output_list = parse_church_list(model_output_raw)
+            for (i, ml) in enumerate(model_output_list) :
+                output.append(pmf.P(i, ml))
+
 
 def homogenize_outputs(outputs) :
     all_output_x = []
